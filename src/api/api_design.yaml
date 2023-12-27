@@ -3,7 +3,30 @@ info:
   title: ML Service API
   version: 1.0.0
 paths:
-  /v1/users:
+  /v1/auth/sign-in:
+    post:
+      summary: Вход пользователя
+      description: Аутентификация пользователя.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: user_info
+          required: true
+          description: Данные для входа пользователя.
+          schema:
+            $ref: "#/definitions/SignIn"
+      responses:
+        200:
+          description: Успешная аутентификация
+          schema:
+            $ref: "#/definitions/SignInResponse"
+        401:
+          description: Неправильные учетные данные
+
+  /v1/auth/sign-up:
     post:
       summary: Регистрация нового пользователя
       description: Создает нового пользователя.
@@ -13,39 +36,28 @@ paths:
         - application/json
       parameters:
         - in: body
-          name: user
+          name: user_info
           required: true
           description: Данные нового пользователя.
           schema:
-            $ref: "#/definitions/User"
+            $ref: "#/definitions/SignUp"
       responses:
-        201:
+        200:
           description: Пользователь успешно зарегистрирован
         400:
           description: Некорректные данные пользователя
         409:
           description: Пользователь с таким email уже существует
 
-  /v1/sessions:
-    post:
-      summary: Авторизация пользователя
-      description: Позволяет пользователю войти в систему.
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: body
-          name: loginDetails
-          required: true
-          description: Данные для авторизации пользователя.
-          schema:
-            $ref: "#/definitions/Login"
+  /v1/auth/me:
+    get:
+      summary: Получение информации о текущем пользователе
+      description: Возвращает информацию о текущем пользователе.
       responses:
         200:
-          description: Успешная авторизация
-        401:
-          description: Неправильные учетные данные
+          description: Информация о текущем пользователе
+          schema:
+            $ref: "#/definitions/User"
 
   /v1/billing/points:
     get:
@@ -100,7 +112,7 @@ paths:
       summary: Получение предсказания от модели
       description: Отправляет файл на предсказание модели.
       consumes:
-        - application/json
+        - multipart/form-data
       parameters:
         - in: formData
           name: file
@@ -134,7 +146,18 @@ paths:
             format: binary
 
 definitions:
-  User:
+  SignIn:
+    type: object
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+      - email
+      - password
+
+  SignUp:
     type: object
     properties:
       name:
@@ -148,16 +171,24 @@ definitions:
       - email
       - password
 
-  Login:
+  SignInResponse:
     type: object
     properties:
-      email:
-        type: string
-      password:
+      token:
         type: string
     required:
+      - token
+
+  User:
+    type: object
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+    required:
+      - name
       - email
-      - password
 
   Billing:
     type: object
@@ -170,19 +201,21 @@ definitions:
   BillingHistory:
     type: object
     properties:
-      BillingHistoryID:
+      id:
         type: integer
-      BillingID:
+      billing_id:
         type: integer
-      PointsChanged:
+      points_changed:
         type: integer
-      Reason:
+      reason:
         type: string
-      ChangedAt:
+      changed_at:
         type: string
     required:
-      - BillingHistoryID
-      - BillingID
-      - PointsChanged
-      - Reason
-      - ChangedAt
+      - id
+      - billing_id
+      - points_changed
+      - reason
+      - changed_at
+
+

@@ -43,3 +43,12 @@ class Database:
             raise
         finally:
             session.close()
+
+    def get_db(self) -> Callable[..., AbstractContextManager[Session]]:
+        try:
+            yield self.session
+        finally:
+            pass
+
+
+db = Database("sqlite:///:memory:")
