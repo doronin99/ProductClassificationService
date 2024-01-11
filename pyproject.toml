@@ -17,6 +17,8 @@ wheel = "^0.42.0"
 setuptools = "^69.0.2"
 python-dotenv = "^1.0.0"
 uvicorn = "^0.24.0.post1"
+pydantic-settings = "^2.1.0"
+pandas = "^2.1.4"
 
 
 [build-system]
