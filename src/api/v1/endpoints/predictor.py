@@ -30,7 +30,7 @@ async def make_prediction(model_name: str, input_data: Dict[str, Any], service: 
             await service.load_model(model_name, f"models/{model_name}_model.pkl")
 
         prediction_task = service.predict(model_name, input_data)
-        return {"prediction_task_id": id(prediction_task)}
+        return {"prediction_task_id": id(prediction_task), "message": "Prediction task created successfully."}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -52,6 +52,6 @@ async def get_prediction_result(prediction_task_id: int, service: PredictorServi
     """
     try:
         result = await service.get_prediction_result(prediction_task_id)
-        return {"prediction_result": result}
+        return {"prediction_result": result, "message": "Prediction result retrieved successfully."}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

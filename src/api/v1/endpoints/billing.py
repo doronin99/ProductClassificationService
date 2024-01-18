@@ -48,7 +48,8 @@ def deduct_credits(points: int, reason: str, user: User = Depends(get_current_us
     Returns:
         bool: True if credits were successfully deducted, False otherwise.
     """
-    return BillingService.deduct_credits(db, user.id, points, reason)
+    success = BillingService.deduct_credits(db, user.id, points, reason)
+    return {"success": success, "message": "Credits deducted successfully." if success else "Failed to deduct credits."}
 
 
 @router.get("/history",
@@ -66,4 +67,5 @@ def get_billing_history(user: User = Depends(get_current_user), db: Session = De
     Returns:
         List[BillingHistory]: The list of billing history entries.
     """
-    return BillingService.get_billing_history(db, user.id)
+    history_entries = BillingService.get_billing_history(db, user.id)
+    return {"history_entries": history_entries, "message": "Billing history retrieved successfully."}

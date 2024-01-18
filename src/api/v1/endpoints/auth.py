@@ -29,7 +29,8 @@ async def sign_in(user_info: SignIn, service: AuthService = Depends(Provide[Cont
     Returns:
         SignInResponse: Information about the signed-in user.
     """
-    return service.sign_in(user_info)
+    response = service.sign_in(user_info)
+    return {"user_info": response, "message": "Sign in successful!"}
 
 
 @router.post("/sign-up",
@@ -48,7 +49,8 @@ async def sign_up(user_info: SignUp, service: AuthService = Depends(Provide[Cont
     Returns:
         User: Information about the newly created user.
     """
-    return service.sign_up(user_info)
+    response = service.sign_up(user_info)
+    return {"user_info": response, "message": "User registration successful!"}
 
 
 @router.get("/me",

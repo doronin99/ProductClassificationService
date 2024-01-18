@@ -6,6 +6,10 @@ from pydantic_settings import BaseSettings
 
 load_dotenv()
 
+os.environ.setdefault("DB_USER", "fake_user")
+os.environ.setdefault("DB_PASSWORD", "fake_password")
+os.environ.setdefault("DB_HOST", "fake_host")
+
 ENV: str = ""
 
 
@@ -75,4 +79,3 @@ class TestConfigs(Configs):
 
 
 configs = Configs()
-

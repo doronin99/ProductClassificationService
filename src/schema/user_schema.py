@@ -3,7 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel, EmailStr, SecretStr
 
 from src.schema.base_schema import FindBase, ModelBaseInfo, SearchOptions
-from src.util.schema import AllOptional
+from src.util.schema import all_optional
 
 
 class User(BaseModel):
@@ -32,16 +32,19 @@ class BaseUserWithPassword(BaseUser):
     password: str
 
 
-class User(ModelBaseInfo, BaseUser, metaclass=AllOptional):
+@all_optional
+class User(ModelBaseInfo, BaseUser):
     ...
 
 
-class FindUser(FindBase, BaseUser, metaclass=AllOptional):
+@all_optional
+class FindUser(FindBase, BaseUser):
     email__eq: str
     ...
 
 
-class UpsertUser(BaseUser, metaclass=AllOptional):
+@all_optional
+class UpsertUser(BaseUser):
     ...
 
 
