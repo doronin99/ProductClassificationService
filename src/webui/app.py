@@ -1,112 +1,124 @@
-from dash import Dash, html, dcc, Input, Output
+import json
+import streamlit as st
+import requests
 
-# Create a Dash application instance
-app = Dash(__name__)
-
-# Define the application layout
-app.layout = html.Div([
-    html.H1("ML Billing Service"),
-
-    html.Div([
-        dcc.Input(id="sign-in-username", type="text", placeholder="Username"),
-        dcc.Input(id="sign-in-password", type="password", placeholder="Password"),
-        html.Button("Sign In", id="sign-in-button"),
-        html.Div(id="sign-in-message")
-    ]),
-
-    html.Div([
-        dcc.Input(id="sign-up-username", type="text", placeholder="Username"),
-        dcc.Input(id="sign-up-password", type="password", placeholder="Password"),
-        html.Button("Sign Up", id="sign-up-button"),
-        html.Div(id="sign-up-message")
-    ]),
-
-    html.Div(id="current-user-info"),
-
-    html.Div([
-        dcc.Input(id="deduct-points", type="number", placeholder="Points to Deduct"),
-        dcc.Input(id="deduct-reason", type="text", placeholder="Deduction Reason"),
-        html.Button("Deduct Credits", id="deduct-credits-button"),
-        html.Div(id="deduct-credits-message")
-    ]),
-
-    html.Div([
-        html.Button("Get Billing History", id="billing-history-button"),
-        html.Div(id="billing-history")
-    ]),
-
-    html.Div([
-        dcc.Input(id="model-name", type="text", placeholder="Model Name"),
-        dcc.Textarea(id="input-data", placeholder="Input Data in JSON format"),
-        html.Button("Make Prediction", id="predict-button"),
-        html.Div(id="prediction-task-id")
-    ])
-])
-
-# Callbacks for handling events of Sign In, Sign Up, Deduct Credits, Get Billing History, and Make Prediction buttons
-# Callbacks are triggered by button clicks and call corresponding API methods
+API_BASE_URL = "http://localhost:8000"  # Замените на ваш URL
 
 
-# Handling Sign In button click event
-@app.callback(
-    Output("sign-in-message", "children"),
-    [Input("sign-in-button", "n_clicks")],
-    prevent_initial_call=True
-)
-def handle_sign_in_button_click(n_clicks):
-    # Call your API method for sign_in
-    # Return a message about successful sign-in or an error
-    return "Sign in button clicked!"
+def sign_in():
+    st.subheader("Sign In")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    if st.button("Sign In"):
+        response = requests.post(f"{API_BASE_URL}/auth/sign-in", json={"username": username, "password": password})
+        if response.status_code == 200:
+            st.success("Sign in successful!")
+            st.json(response.json())
+            return response.json().get("user_info")
+        else:
+            st.error("Sign in failed.")
+            st.text(response.text)
+            return None
 
 
-# Handling Sign Up button click event
-@app.callback(
-    Output("sign-up-message", "children"),
-    [Input("sign-up-button", "n_clicks")],
-    prevent_initial_call=True
-)
-def handle_sign_up_button_click(n_clicks):
-    # Call your API method for sign_up
-    # Return a message about successful registration or an error
-    return "Sign up button clicked!"
+def sign_up():
+    st.subheader("Sign Up")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    if st.button("Sign Up"):
+        response = requests.post(f"{API_BASE_URL}/auth/sign-up", json={"username": username, "password": password})
+        if response.status_code == 200:
+            st.success("User registration successful!")
+            st.json(response.json())
+            return response.json().get("user_info")
+        else:
+            st.error("User registration failed.")
+            st.text(response.text)
+            return None
 
 
-# Handling Deduct Credits button click event
-@app.callback(
-    Output("deduct-credits-message", "children"),
-    [Input("deduct-credits-button", "n_clicks")],
-    prevent_initial_call=True
-)
-def handle_deduct_credits_button_click(n_clicks):
-    # Call your API method for deduct_credits
-    # Return a message about successful deduction or an error
-    return "Deduct Credits button clicked!"
+def get_user_balance():
+    st.subheader("Get User Balance")
+    response = requests.get(f"{API_BASE_URL}/billing/points")
+    if response.status_code == 200:
+        st.success(f"User balance: {response.json()} points")
+    else:
+        st.error("Failed to retrieve user balance.")
+        st.text(response.text)
 
 
-# Handling Get Billing History button click event
-@app.callback(
-    Output("billing-history", "children"),
-    [Input("billing-history-button", "n_clicks")],
-    prevent_initial_call=True
-)
-def handle_billing_history_button_click(n_clicks):
-    # Call your API method for get_billing_history
-    # Return the results for display in the interface
-    return "Billing History button clicked!"
+def deduct_credits():
+    st.subheader("Deduct Credits")
+    points = st.number_input("Points to deduct", min_value=1, step=1)
+    reason = st.text_input("Deduction reason")
+    if st.button("Deduct Credits"):
+        response = requests.post(f"{API_BASE_URL}/billing/deduct", json={"points": points, "reason": reason})
+        if response.status_code == 200:
+            st.success("Credits deducted successfully.")
+            st.json(response.json())
+        else:
+            st.error("Failed to deduct credits.")
+            st.text(response.text)
 
 
-# Handling Make Prediction button click event
-@app.callback(
-    Output("prediction-task-id", "children"),
-    [Input("predict-button", "n_clicks")],
-    prevent_initial_call=True
-)
-def handle_predict_button_click(n_clicks):
-    # Call your API method for make_prediction
-    # Return the prediction task ID for display in the interface
-    return "Make Prediction button clicked!"
+def get_billing_history():
+    st.subheader("Get Billing History")
+    response = requests.get(f"{API_BASE_URL}/billing/history")
+    if response.status_code == 200:
+        st.success("Billing history retrieved successfully.")
+        st.json(response.json())
+    else:
+        st.error("Failed to retrieve billing history.")
+        st.text(response.text)
 
 
-# Run the Dash app if the script is executed
+def make_prediction():
+    st.subheader("Make Prediction")
+    model_name = st.text_input("Model Name")
+    input_data = st.text_area("Input Data (JSON format)")
+    if st.button("Make Prediction"):
+        try:
+            input_data = json.loads(input_data)
+            response = requests.post(f"{API_BASE_URL}/predictor/predict/{model_name}", json={"input_data": input_data})
+            if response.status_code == 200:
+                st.success("Prediction task created successfully.")
+                st.json(response.json())
+            else:
+                st.error("Failed to create prediction task.")
+                st.text(response.text)
+        except json.JSONDecodeError as e:
+            st.error(f"Error parsing input data: {e}")
+
+
+def get_prediction_result():
+    st.subheader("Get Prediction Result")
+    prediction_task_id = st.number_input("Prediction Task ID", min_value=1, step=1)
+    if st.button("Get Prediction Result"):
+        response = requests.get(f"{API_BASE_URL}/predictor/prediction/{prediction_task_id}")
+        if response.status_code == 200:
+            st.success("Prediction result retrieved successfully.")
+            st.json(response.json())
+        else:
+            st.error("Failed to retrieve prediction result.")
+            st.text(response.text)
+
+
+def main():
+    st.title("ML Service Web UI")
+
+    action = st.radio("Choose an action:", ["Sign Up", "Sign In"])
+
+    if action == "Sign Up":
+        sign_up()
+    elif action == "Sign In":
+        user_info = sign_in()
+        if user_info:
+            get_user_balance()
+            deduct_credits()
+            get_billing_history()
+            make_prediction()
+            get_prediction_result()
+
+
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    main()
