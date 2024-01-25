@@ -6,7 +6,7 @@ authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.9,<3.9.7 || >3.9.7,<4.0"
 fastapi = "^0.104.1"
 dependency-injector = "^4.41.0"
 sqlalchemy = "^2.0.23"
@@ -17,6 +17,12 @@ wheel = "^0.42.0"
 setuptools = "^69.0.2"
 python-dotenv = "^1.0.0"
 uvicorn = "^0.24.0.post1"
+pydantic-settings = "^2.1.0"
+pandas = "^2.1.4"
+passlib = "^1.7.4"
+python-jose = "^3.3.0"
+dash = "^2.14.2"
+streamlit = "^1.30.0"
 
 
 [build-system]

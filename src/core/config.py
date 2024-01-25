@@ -1,10 +1,14 @@
 import os
-from typing import List
+from typing import ClassVar, List
 
 from dotenv import load_dotenv
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 load_dotenv()
+
+os.environ.setdefault("DB_USER", "fake_user")
+os.environ.setdefault("DB_PASSWORD", "fake_password")
+os.environ.setdefault("DB_HOST", "fake_host")
 
 ENV: str = ""
 
@@ -46,6 +50,7 @@ class Configs(BaseSettings):
     DB_FILE: str = os.getenv("DB_FILE", "temp.db")
     DB_ENGINE: str = DB_ENGINE_MAPPER.get(DB, "sqlite")
 
+    DATABASE_URI: str
     if DB_ENGINE == "postgresql":
         DATABASE_URI_FORMAT: str = "{db_engine}://{user}:{password}@{host}:{port}/{database}"
         DATABASE_URI = "{db_engine}://{user}:{password}@{host}:{port}/{database}".format(
@@ -61,9 +66,9 @@ class Configs(BaseSettings):
         DATABASE_URI = "sqlite:///{dbfile}".format(dbfile=DB_FILE)
 
     # find query
-    PAGE = 1
-    PAGE_SIZE = 20
-    ORDERING = "-id"
+    PAGE: ClassVar[int] = 1
+    PAGE_SIZE: ClassVar[int] = 20
+    ORDERING: ClassVar[str] = "-id"
 
     class Config:
         case_sensitive = True
@@ -74,4 +79,3 @@ class TestConfigs(Configs):
 
 
 configs = Configs()
-

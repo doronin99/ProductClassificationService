@@ -1,188 +1,195 @@
-swagger: "2.0"
+swagger: '2.0'
 info:
-  title: ML Service API
-  version: 1.0.0
+  title: 'ProductClassificationService API'
+  version: '1.0'
 paths:
-  /v1/users:
+  /auth/sign-in:
     post:
-      summary: Регистрация нового пользователя
-      description: Создает нового пользователя.
-      consumes:
-        - application/json
-      produces:
-        - application/json
+      summary: 'Sign In'
+      description: 'Sign in and get an access token.'
+      tags:
+        - 'auth'
       parameters:
-        - in: body
-          name: user
-          required: true
-          description: Данные нового пользователя.
+        - in: 'body'
+          name: 'user_info'
+          description: 'User credentials for sign-in.'
           schema:
-            $ref: "#/definitions/User"
+            $ref: '#/definitions/SignIn'
       responses:
-        201:
-          description: Пользователь успешно зарегистрирован
-        400:
-          description: Некорректные данные пользователя
-        409:
-          description: Пользователь с таким email уже существует
-
-  /v1/sessions:
+        '200':
+          description: 'Successful sign-in'
+          schema:
+            $ref: '#/definitions/SignInResponse'
+  /auth/sign-up:
     post:
-      summary: Авторизация пользователя
-      description: Позволяет пользователю войти в систему.
-      consumes:
-        - application/json
-      produces:
-        - application/json
+      summary: 'Sign Up'
+      description: 'Sign up and create a new user.'
+      tags:
+        - 'auth'
       parameters:
-        - in: body
-          name: loginDetails
-          required: true
-          description: Данные для авторизации пользователя.
+        - in: 'body'
+          name: 'user_info'
+          description: 'User information for sign-up.'
           schema:
-            $ref: "#/definitions/Login"
+            $ref: '#/definitions/SignUp'
       responses:
-        200:
-          description: Успешная авторизация
-        401:
-          description: Неправильные учетные данные
-
-  /v1/billing/points:
+        '200':
+          description: 'Successful sign-up'
+          schema:
+            $ref: '#/definitions/User'
+  /auth/me:
     get:
-      summary: Просмотр баллов пользователя
-      description: Возвращает текущее количество баллов пользователя.
-      parameters:
-        - in: header
-          name: Authorization
-          required: true
-          type: string
+      summary: 'Get Current User'
+      description: 'Get information about the currently authenticated user.'
+      tags:
+        - 'auth'
+      security:
+        - apiKey: []
       responses:
-        200:
-          description: Текущее количество баллов пользователя
-
-    post:
-      summary: Списание баллов за использование сервиса
-      description: Списывает баллы с пользовательского счета за использование сервиса.
-      parameters:
-        - in: header
-          name: Authorization
-          required: true
-          type: string
-        - in: body
-          name: BillingDetails
-          required: true
-          description: Данные для списания баллов.
+        '200':
+          description: 'Successful retrieval of current user'
           schema:
-            $ref: "#/definitions/Billing"
-      responses:
-        200:
-          description: Баллы успешно списаны
-
-  /v1/billing/history:
+            $ref: '#/definitions/User'
+  /billing/points:
     get:
-      summary: Просмотр истории биллинга пользователя
-      description: Возвращает историю биллинга пользователя.
-      parameters:
-        - in: header
-          name: Authorization
-          required: true
-          type: string
+      summary: 'Get User Balance'
+      description: 'Get the current balance of the user''s points.'
+      tags:
+        - 'billing'
+      security:
+        - apiKey: []
       responses:
-        200:
-          description: История биллинга пользователя
+        '200':
+          description: 'Successful retrieval of user balance'
           schema:
-            type: array
+            type: 'integer'
+  /billing/deduct:
+    post:
+      summary: 'Deduct Credits'
+      description: 'Deduct credits from the user''s balance for a specific reason.'
+      tags:
+        - 'billing'
+      security:
+        - apiKey: []
+      parameters:
+        - in: 'body'
+          name: 'deduction_data'
+          description: 'Data for deducting credits.'
+          schema:
+            $ref: '#/definitions/DeductionData'
+      responses:
+        '200':
+          description: 'Successful deduction of credits'
+          schema:
+            type: 'boolean'
+  /billing/history:
+    get:
+      summary: 'Get Billing History'
+      description: 'Get the billing history of the user.'
+      tags:
+        - 'billing'
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: 'Successful retrieval of billing history'
+          schema:
+            type: 'array'
             items:
               $ref: '#/definitions/BillingHistory'
-
-  /v1/prediction:
+  /predictor/predict/{model_name}:
     post:
-      summary: Получение предсказания от модели
-      description: Отправляет файл на предсказание модели.
-      consumes:
-        - application/json
+      summary: 'Make Prediction'
+      description: 'Make a prediction using the specified model.'
+      tags:
+        - 'predictor'
       parameters:
-        - in: formData
-          name: file
+        - in: 'path'
+          name: 'model_name'
+          description: 'The name of the model to use for prediction.'
           required: true
-          type: file
-        - in: formData
-          name: modelName
-          required: true
-          type: string
-        - in: header
-          name: Authorization
-          required: true
-          type: string
-      responses:
-        200:
-          description: Отправка файла на предсказание
-
-    get:
-      summary: Скачивание CSV с результатами предсказаний
-      description: Скачивает CSV файл с результатами предсказаний.
-      parameters:
-        - in: header
-          name: Authorization
-          required: true
-          type: string
-      responses:
-        200:
-          description: CSV файл успешно скачан
+          type: 'string'
+        - in: 'body'
+          name: 'input_data'
+          description: 'Input data for making a prediction.'
           schema:
-            type: file
-            format: binary
-
+            type: 'object'
+      responses:
+        '200':
+          description: 'Successful prediction'
+          schema:
+            $ref: '#/definitions/PredictionResult'
+  /predictor/prediction/{prediction_task_id}:
+    get:
+      summary: 'Get Prediction Result'
+      description: 'Get the result of a previously made prediction.'
+      tags:
+        - 'predictor'
+      parameters:
+        - in: 'path'
+          name: 'prediction_task_id'
+          description: 'The ID of the prediction task.'
+          required: true
+          type: 'integer'
+      responses:
+        '200':
+          description: 'Successful retrieval of prediction result'
+          schema:
+            $ref: '#/definitions/PredictionResult'
 definitions:
+  SignIn:
+    type: 'object'
+    properties:
+      username:
+        type: 'string'
+      password:
+        type: 'string'
+    required:
+      - 'username'
+      - 'password'
+  SignInResponse:
+    type: 'object'
+    properties:
+      token:
+        type: 'string'
+      token_type:
+        type: 'string'
+  SignUp:
+    type: 'object'
+    properties:
+      username:
+        type: 'string'
+      password:
+        type: 'string'
+      email:
+        type: 'string'
+    required:
+      - 'username'
+      - 'password'
+      - 'email'
   User:
-    type: object
+    type: 'object'
     properties:
-      name:
-        type: string
+      username:
+        type: 'string'
       email:
-        type: string
-      password:
-        type: string
-    required:
-      - name
-      - email
-      - password
-
-  Login:
-    type: object
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-    required:
-      - email
-      - password
-
-  Billing:
-    type: object
+        type: 'string'
+  DeductionData:
+    type: 'object'
     properties:
       points:
-        type: integer
-    required:
-      - points
-
+        type: 'integer'
+      reason:
+        type: 'string'
   BillingHistory:
-    type: object
+    type: 'object'
     properties:
-      BillingHistoryID:
-        type: integer
-      BillingID:
-        type: integer
-      PointsChanged:
-        type: integer
-      Reason:
-        type: string
-      ChangedAt:
-        type: string
-    required:
-      - BillingHistoryID
-      - BillingID
-      - PointsChanged
-      - Reason
-      - ChangedAt
+      date:
+        type: 'string'
+      description:
+        type: 'string'
+  PredictionResult:
+    type: 'object'
+    properties:
+      prediction_result:
+        type: 'string'
