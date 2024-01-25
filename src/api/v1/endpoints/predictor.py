@@ -13,7 +13,11 @@ predictor_service = PredictorService()
              response_model=Dict[str, Any],
              summary="Make Prediction",
              description="Make a prediction using the specified model.")
-async def make_prediction(model_name: str, input_data: Dict[str, Any], service: PredictorService = Depends()):
+async def make_prediction(
+    model_name: str,
+    input_data: Dict[str, Any],
+    service: PredictorService = Depends()
+):
     """
     Make a prediction using the specified model.
 
@@ -39,7 +43,10 @@ async def make_prediction(model_name: str, input_data: Dict[str, Any], service: 
             response_model=Dict[str, Any],
             summary="Get Prediction Result",
             description="Get the result of a previously made prediction.")
-async def get_prediction_result(prediction_task_id: int, service: PredictorService = Depends()):
+async def get_prediction_result(
+    prediction_task_id: int,
+    service: PredictorService = Depends()
+):
     """
     Get the result of a previously made prediction.
 

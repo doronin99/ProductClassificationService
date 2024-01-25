@@ -1,8 +1,8 @@
-from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
+from src.core.security import JWTBearer, create_access_token
+from dependency_injector.wiring import Provide, inject
 
 from src.core.container import Container
-from src.core.dependencies import get_current_active_user
 from src.schema.auth_schema import SignIn, SignInResponse, SignUp
 from src.schema.user_schema import User
 from src.services.auth_service import AuthService
@@ -30,7 +30,11 @@ async def sign_in(user_info: SignIn, service: AuthService = Depends(Provide[Cont
         SignInResponse: Information about the signed-in user.
     """
     response = service.sign_in(user_info)
-    return {"user_info": response, "message": "Sign in successful!"}
+    access_token, expiration_datetime = create_access_token(response)
+    return {"user_info": response,
+            "message": "Sign in successful!",
+            "access_token": access_token,
+            "token_expires": expiration_datetime}
 
 
 @router.post("/sign-up",
@@ -50,7 +54,11 @@ async def sign_up(user_info: SignUp, service: AuthService = Depends(Provide[Cont
         User: Information about the newly created user.
     """
     response = service.sign_up(user_info)
-    return {"user_info": response, "message": "User registration successful!"}
+    access_token, expiration_datetime = create_access_token(response)
+    return {"user_info": response,
+            "message": "User registration successful!",
+            "access_token": access_token,
+            "token_expires": expiration_datetime}
 
 
 @router.get("/me",
@@ -58,7 +66,7 @@ async def sign_up(user_info: SignUp, service: AuthService = Depends(Provide[Cont
             summary="Get Current User",
             description="Get information about the currently authenticated user.")
 @inject
-async def get_me(current_user: User = Depends(get_current_active_user)):
+async def get_me(current_user: User = Depends(JWTBearer())):
     """
     Get information about the currently authenticated user.
 

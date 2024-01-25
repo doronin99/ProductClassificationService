@@ -2,9 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from src.core.database import db
-from src.core.dependencies import get_current_user
 from src.core.models import User
-from src.schema.billing_schema import BillingHistory
+from src.core.security import JWTBearer
 from src.services.billing_service import BillingService
 
 router = APIRouter(
@@ -17,7 +16,10 @@ router = APIRouter(
             response_model=int,
             summary="Get User Balance",
             description="Get the current balance of the user's points.")
-def get_user_balance(user: User = Depends(get_current_user), db: Session = Depends(db.get_db)):
+def get_user_balance(
+    user: User = Depends(JWTBearer()),
+    db: Session = Depends(db.get_db)
+):
     """
     Get the current balance of the user's points.
 
@@ -32,10 +34,15 @@ def get_user_balance(user: User = Depends(get_current_user), db: Session = Depen
 
 
 @router.post("/deduct",
-             response_model=bool,
+             response_model=dict,
              summary="Deduct Credits",
              description="Deduct credits from the user's balance for a specific reason.")
-def deduct_credits(points: int, reason: str, user: User = Depends(get_current_user), db: Session = Depends(db.get_db)):
+def deduct_credits(
+    points: int,
+    reason: str,
+    user: User = Depends(JWTBearer()),
+    db: Session = Depends(db.get_db)
+):
     """
     Deduct credits from the user's balance for a specific reason.
 
@@ -46,17 +53,20 @@ def deduct_credits(points: int, reason: str, user: User = Depends(get_current_us
         db (Session): The database session.
 
     Returns:
-        bool: True if credits were successfully deducted, False otherwise.
+        dict: Response indicating success or failure.
     """
     success = BillingService.deduct_credits(db, user.id, points, reason)
     return {"success": success, "message": "Credits deducted successfully." if success else "Failed to deduct credits."}
 
 
 @router.get("/history",
-            response_model=list[BillingHistory],
+            response_model=dict,
             summary="Get Billing History",
             description="Get the billing history of the user.")
-def get_billing_history(user: User = Depends(get_current_user), db: Session = Depends(db.get_db)):
+def get_billing_history(
+    user: User = Depends(JWTBearer()),
+    db: Session = Depends(db.get_db)
+):
     """
     Get the billing history of the user.
 
@@ -65,7 +75,7 @@ def get_billing_history(user: User = Depends(get_current_user), db: Session = De
         db (Session): The database session.
 
     Returns:
-        List[BillingHistory]: The list of billing history entries.
+        dict: Response with billing history entries and message.
     """
     history_entries = BillingService.get_billing_history(db, user.id)
     return {"history_entries": history_entries, "message": "Billing history retrieved successfully."}
